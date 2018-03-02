@@ -247,6 +247,7 @@ int main(int argc, char **argv) {
     //reading dataset rhou1 with (i, j) access
     //writing dataset rhoE_old with (i, j) access
     //reading dataset rhoE with (i, j) access
+    auto start = std::chrono::high_resolution_clock::now();
     #pragma omp for collapse (2)
     for (int j = 0; j < nx1 + 4; j++) {
       for (int i = 0; i < nx0 + 4; i++) {
@@ -260,7 +261,7 @@ int main(int argc, char **argv) {
             rhoE[(j + 0) * (nx0 + 4) + (i + 0)];
       }
     }
-    loop1 = std::chrono::high_resolution_clock::now() - start;
+    loop1 += std::chrono::high_resolution_clock::now() - start;
 
     // Runge-Kutta time-stepper
     for (int stage = 0; stage < 3; stage++) {
@@ -274,6 +275,7 @@ int main(int argc, char **argv) {
       //writing dataset p with (i, j) acces
       //writing dataset u1 with (i, j) acces
       //writing dataset u0 with (i, j) acces
+      auto start = std::chrono::high_resolution_clock::now();
       #pragma omp for collapse (2)
       for (int j = 0; j < nx1 + 4; j++) {
         for (int i = 0; i < nx0 + 4; i++) {
@@ -298,7 +300,7 @@ int main(int argc, char **argv) {
               rho[(j + 0) * (nx0 + 4) + (i + 0)];
         }
       }
-      loop2 = std::chrono::high_resolution_clock::now() - start;
+      loop2 += std::chrono::high_resolution_clock::now() - start;
       // Residual of equation
       //writing dataset wk0 with (i,j) access
       //writing dataset wk1 with (i,j) access
@@ -309,6 +311,7 @@ int main(int argc, char **argv) {
       //reading dataset u0 with (i,j), (i, j-2), (i,j-1) , (i,j+1), (i,j+2) access
       //reading dataset rhou1 with (i, j), (i-2, j), (i-1, j), (i+1, j), (i+2, j), (i, j-2), (i,j-1) , (i,j+1), (i,j+2) access
       //reading dataset rhou0 with (i, j), (i-2, j), (i-1, j), (i+1, j), (i+2, j), (i, j-2), (i,j-1) , (i,j+1), (i,j+2) access
+      start = std::chrono::high_resolution_clock::now();
       #pragma omp for collapse (2)
       for (int j = 2; j < nx1 + 2; j++) {
         for (int i = 2; i < nx0 + 2; i++) {
@@ -583,7 +586,7 @@ int main(int argc, char **argv) {
                   rhoE[(j + 0) * (nx0 + 4) + (i + 0)];
         }
       }
-      loop3 = std::chrono::high_resolution_clock::now() - start;
+      loop3 += std::chrono::high_resolution_clock::now() - start;
       // RK new (subloop) update
       //writing dataset rho with (i, j) access
       //reading dataset wk0 with (i, j) access
@@ -597,6 +600,7 @@ int main(int argc, char **argv) {
       //writing dataset rhoE with (i, j) access
       //reading dataset wk3 with (i, j) access
       //reading dataset rhoE_old with (i, j) access
+      start = std::chrono::high_resolution_clock::now();
       #pragma omp for collapse (2)
       for (int j = 0; j < nx1 + 4; j++) {
         for (int i = 0; i < nx0 + 4; i++) {
@@ -614,7 +618,7 @@ int main(int argc, char **argv) {
               rhoE_old[(j + 0) * (nx0 + 4) + (i + 0)];
         }
       }
-      loop4 = std::chrono::high_resolution_clock::now() - start;
+      loop4 += std::chrono::high_resolution_clock::now() - start;
       // RK old update
       //writing rho_old with (i, j) access
       //reading wk0 with (i, j) access
@@ -628,6 +632,7 @@ int main(int argc, char **argv) {
       //writing rhoE_old with (i, j) access
       //reading wk3 with (i, j) access
       //reading rhoE_old with (i, j) access
+      start = std::chrono::high_resolution_clock::now();
       #pragma omp for collapse (2)
       for (int j = 0; j < nx1 + 4; j++) {
         for (int i = 0; i < nx0 + 4; i++) {
@@ -645,7 +650,7 @@ int main(int argc, char **argv) {
               rhoE_old[(j + 0) * (nx0 + 4) + (i + 0)];
         }
       }
-      loop5 = std::chrono::high_resolution_clock::now() - start;
+      loop5 += std::chrono::high_resolution_clock::now() - start;
       // Apply boundary conditions
 
       // Left
@@ -657,6 +662,7 @@ int main(int argc, char **argv) {
       //reading dataset rhou1 with (i+1, j), (i+2, j) access
       //writing dataset rhoE with (i-1, j), (i-2, j) access
       //reading dataset rhoE with (i+1, j), (i+2, j) access
+      start = std::chrono::high_resolution_clock::now();
       #pragma omp for collapse (2)
       for (int j = 0; j < nx1 + 4; j++) {
         for (int i = 2; i < 3; i++) {
@@ -678,7 +684,7 @@ int main(int argc, char **argv) {
               rhoE[(j + 0) * (nx0 + 4) + (i + 2)];
         }
       }
-      loop6 = std::chrono::high_resolution_clock::now() - start;
+      loop6 += std::chrono::high_resolution_clock::now() - start;
 
       // Right
       //writing dataset rho with (i+1, j), (i+2, j) access
@@ -689,6 +695,7 @@ int main(int argc, char **argv) {
       //reading dataset rhou1 with (i-1, j), (i-2, j) access
       //writing dataset rhoE with (i+1, j), (i+2, j) access
       //reading dataset rhoE with (i-1, j), (i-2, j) access
+      start = std::chrono::high_resolution_clock::now();
       #pragma omp for collapse (2)
       for (int j = 0; j < nx1 + 4; j++) {
         for (int i = nx0 + 1; i < nx0 + 2; i++) {
@@ -710,7 +717,7 @@ int main(int argc, char **argv) {
               rhoE[(j + 0) * (nx0 + 4) + (i - 2)];
         }
       }
-      loop7 = std::chrono::high_resolution_clock::now() - start;
+      loop7 += std::chrono::high_resolution_clock::now() - start;
       // Top
       //writing dataset rho with (i, j-1), (i, j-2) access
       //reading dataset rho with (i, j+1), (i, j+2) access
@@ -720,6 +727,7 @@ int main(int argc, char **argv) {
       //reading dataset rhou1 with (i, j+1), (i, j+2) access
       //writing dataset rhoE with (i, j-1), (i, j-2) access
       //reading dataset rhoE with (i, j+1), (i, j+2) access
+      start = std::chrono::high_resolution_clock::now();
       #pragma omp for collapse (2)
       for (int j = 2; j < 3; j++) {
         for (int i = 0; i < nx0 + 4; i++) {
@@ -741,7 +749,7 @@ int main(int argc, char **argv) {
               rhoE[(j + 2) * (nx0 + 4) + (i + 0)];
         }
       }
-      loop8 = std::chrono::high_resolution_clock::now() - start;
+      loop8 += std::chrono::high_resolution_clock::now() - start;
       // Bottom
       //writing dataset rho with (i, j+1), (i, j+2) access
       //reading dataset rho with (i, j-1), (i, j-2) access
@@ -751,6 +759,7 @@ int main(int argc, char **argv) {
       //reading dataset rhou1 with (i, j-1), (i, j-2) access
       //writing dataset rhoE with (i, j+1), (i, j+2) access
       //reading dataset rhoE with (i, j-1), (i, j-2) access
+      start = std::chrono::high_resolution_clock::now();
       #pragma omp for collapse (2)
       for (int j = nx1 + 1; j < nx1 + 2; j++) {
         for (int i = 0; i < nx0 + 4; i++) {
@@ -773,13 +782,14 @@ int main(int argc, char **argv) {
         }
       }
     }
-    loop9 = std::chrono::high_resolution_clock::now() - start;
+    loop9 += std::chrono::high_resolution_clock::now() - start;
     // End of stage loop
 
     double sum = 0.0;
     double sum2 = 0.0;
     //reading dataset rho with (i, j) access
     //reading dataset p with (i, j) access
+    start = std::chrono::high_resolution_clock::now();
     #pragma omp for collapse (2)
     for (int j = 0; j < nx1 + 4; j++) {
       for (int i = 0; i < nx0 + 4; i++) {
@@ -787,7 +797,7 @@ int main(int argc, char **argv) {
         sum2 += p[j * (nx0 + 4) + i] * p[j * (nx0 + 4) + i];
       }
     }
-    loop10 = std::chrono::high_resolution_clock::now() - start;
+    loop10 += std::chrono::high_resolution_clock::now() - start;
     std::cout << "Checksums: " << sqrt(sum) << " " << sqrt(sum2) << "\n";
 
   } // End of time loop
@@ -799,16 +809,16 @@ int main(int argc, char **argv) {
   std::cout << "\nTimings are:\n";
   std::cout << "-----------------------------------------\n";
   // TODO: per-loop statistics come here
-  std::cout << "Loop 1 time     " << loop1.count() << " seconds\n";
-  std::cout << "Loop 2 time     " << loop2.count() << " seconds\n";
-  std::cout << "Loop 3 time     " << loop3.count() << " seconds\n";
-  std::cout << "Loop 4 time     " << loop4.count() << " seconds\n";
-  std::cout << "Loop 5 time     " << loop5.count() << " seconds\n";
-  std::cout << "Loop 6 time     " << loop6.count() << " seconds\n";
-  std::cout << "Loop 7 time     " << loop7.count() << " seconds\n";
-  std::cout << "Loop 8 time     " << loop8.count() << " seconds\n";
-  std::cout << "Loop 9 time     " << loop9.count() << " seconds\n";
-  std::cout << "Loop 10 time     " << loop10.count() << " seconds\n";
+  std::cout << "Loop 1 time     " << loop1.count() / itercount << " seconds\n";
+  std::cout << "Loop 2 time     " << loop2.count() / itercount / 3 << " seconds\n";
+  std::cout << "Loop 3 time     " << loop3.count() / itercount / 3 << " seconds\n";
+  std::cout << "Loop 4 time     " << loop4.count() / itercount / 3 << " seconds\n";
+  std::cout << "Loop 5 time     " << loop5.count() / itercount / 3 << " seconds\n";
+  std::cout << "Loop 6 time     " << loop6.count() / itercount / 3 << " seconds\n";
+  std::cout << "Loop 7 time     " << loop7.count() / itercount / 3 << " seconds\n";
+  std::cout << "Loop 8 time     " << loop8.count() / itercount / 3 << " seconds\n";
+  std::cout << "Loop 9 time     " << loop9.count() / itercount / 3 << " seconds\n";
+  std::cout << "Loop 10 time     " << loop10.count() / itercount / 3 << " seconds\n";
   std::cout << "Total Wall time " << diff.count() << " seconds\n";
 
   delete[] rho;
