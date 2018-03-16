@@ -3,16 +3,7 @@
 #include <mpi.h>
 #include <random>
 #include <math.h>
-/*
- Author:
- Mitnyik Levente
 
- First Assistant:
- Captain Prof McBotos Csaba
-
-
-*/
-//
 //#define VERBOSE true
 
 
@@ -94,7 +85,7 @@ int main(int argc, char *argv[]){
   //   }
   // }
 
-  
+
   for(int i=0; i<gridSize; i++){
     for(int j=0; j<gridSize; j++){
       int offset = (rank / numGrid) * N * gridSize + rank % numGrid * gridSize;
