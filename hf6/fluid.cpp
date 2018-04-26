@@ -32,7 +32,8 @@ double Re;
 double deltat;
 double gama;
 int itercount;
-
+double sum_reduce_buff;
+double sum_reduce_buff2;
 // main program start
 int main(int argc, char **argv) {
 
@@ -72,9 +73,6 @@ int main(int argc, char **argv) {
   rinv5 = pow(deltai0, -2);
   itercount = 20;
 
-  std::cout << "Running on a " << nx0 + 4 << "x" << nx1 + 4 << " mesh for "
-            << itercount << " iterations\n";
-
   // Allocating mesh
   double *rho = new double[(nx0 + 4) * (nx1 + 4)];
   double *rhou0 = new double[(nx0 + 4) * (nx1 + 4)];
@@ -95,6 +93,9 @@ int main(int argc, char **argv) {
 
   
   mpi_setup(argc, argv, &nx0, &nx1);
+  std::cout << "Process (" << my_rank << ") running on a " << nx0 + 4 << "x" << nx1 + 4 << " mesh for "
+            << itercount << " iterations\n";
+
 
   // Initialisation
   //writing dataset rho with (i,j) access
@@ -117,17 +118,21 @@ int main(int argc, char **argv) {
           rinv11 * p + 0.5 * r * (pow(u, 2) + pow(v, 2));
     }
   }
-
+  set_dirty(rho);
+  set_dirty(rhou0);
+  set_dirty(rhou1);
+  set_dirty(rhoE);
+  if (prev_x == MPI_PROC_NULL){
   // Apply boundary conditions
   // Left
-  //writing dataset rho with (i-1, j), (i-2, j) access
   //reading dataset rho with (i+1, j), (i+2, j) access
-  //writing dataset rhou0 with (i-1, j), (i-2, j) access
   //reading dataset rhou0 with (i+1, j), (i+2, j) access
-  //writing dataset rhou1 with (i-1, j), (i-2, j) access
   //reading dataset rhou1 with (i+1, j), (i+2, j) access
-  //writing dataset rhoE with (i-1, j), (i-2, j) access
   //reading dataset rhoE with (i+1, j), (i+2, j) access
+  //writing dataset rho with (i-1, j), (i-2, j) access
+  //writing dataset rhou0 with (i-1, j), (i-2, j) access
+  //writing dataset rhou1 with (i-1, j), (i-2, j) access
+  //writing dataset rhoE with (i-1, j), (i-2, j) access
   #pragma omp for collapse (2)
   for (int j = 0; j < nx1 + 4; j++) {
     for (int i = 2; i < 3; i++) {
@@ -145,16 +150,22 @@ int main(int argc, char **argv) {
       rhoE[(j + 0) * (nx0 + 4) + (i - 2)] = rhoE[(j + 0) * (nx0 + 4) + (i + 2)];
     }
   }
-
+  set_dirty(rho);
+  set_dirty(rhou0);
+  set_dirty(rhou1);
+  set_dirty(rhoE);
+  }
+  
+  if (next_x == MPI_PROC_NULL){
   // Right
-  //writing dataset rho with (i+1, j), (i+2, j) access
   //reading dataset rho with (i-1, j), (i-2, j) access
-  //writing dataset rhou0 with (i+1, j), (i+2, j) access
   //reading dataset rhou0 with (i-1, j), (i-2, j) access
-  //writing dataset rhou1 with (i+1, j), (i+2, j) access
   //reading dataset rhou1 with (i-1, j), (i-2, j) access
-  //writing dataset rhoE with (i+1, j), (i+2, j) access
   //reading dataset rhoE with (i-1, j), (i-2, j) access
+  //writing dataset rho with (i+1, j), (i+2, j) access
+  //writing dataset rhou0 with (i+1, j), (i+2, j) access
+  //writing dataset rhou1 with (i+1, j), (i+2, j) access
+  //writing dataset rhoE with (i+1, j), (i+2, j) access
   #pragma omp for collapse (2)
   for (int j = 0; j < nx1 + 4; j++) {
     for (int i = nx0 + 1; i < nx0 + 2; i++) {
@@ -172,16 +183,23 @@ int main(int argc, char **argv) {
       rhoE[(j + 0) * (nx0 + 4) + (i + 2)] = rhoE[(j + 0) * (nx0 + 4) + (i - 2)];
     }
   }
+  set_dirty(rho);
+  set_dirty(rhou0);
+  set_dirty(rhou1);
+  set_dirty(rhoE);
+  }
 
+  
+  if (prev_y == MPI_PROC_NULL){
   // Top
-  //writing dataset rho with (i, j-1), (i, j-2) access
   //reading dataset rho with (i, j+1), (i, j+2) access
-  //writing dataset rhou0 with (i, j-1), (i, j-2) access
   //reading dataset rhou0 with (i, j+1), (i, j+2) access
-  //writing dataset rhou1 with (i, j-1), (i, j-2) access
   //reading dataset rhou1 with (i, j+1), (i, j+2) access
-  //writing dataset rhoE with (i, j-1), (i, j-2) access
   //reading dataset rhoE with (i, j+1), (i, j+2) access
+  //writing dataset rho with (i, j-1), (i, j-2) access
+  //writing dataset rhou0 with (i, j-1), (i, j-2) access
+  //writing dataset rhou1 with (i, j-1), (i, j-2) access
+  //writing dataset rhoE with (i, j-1), (i, j-2) access
   #pragma omp for collapse (2)
   for (int j = 2; j < 3; j++) {
     for (int i = 0; i < nx0 + 4; i++) {
@@ -199,16 +217,23 @@ int main(int argc, char **argv) {
       rhoE[(j - 2) * (nx0 + 4) + (i + 0)] = rhoE[(j + 2) * (nx0 + 4) + (i + 0)];
     }
   }
+  set_dirty(rho);
+  set_dirty(rhou0);
+  set_dirty(rhou1);
+  set_dirty(rhoE);
+  }
 
+
+  if (next_y == MPI_PROC_NULL){
   // Bottom
-  //writing dataset rho with (i, j+1), (i, j+2) access
   //reading dataset rho with (i, j-1), (i, j-2) access
-  //writing dataset rhou0 with (i, j+1), (i, j+2) access
   //reading dataset rhou0 with (i, j-1), (i, j-2) access
-  //writing dataset rhou1 with (i, j+1), (i, j+2) access
   //reading dataset rhou1 with (i, j-1), (i, j-2) access
-  //writing dataset rhoE with (i, j+1), (i, j+2) access
   //reading dataset rhoE with (i, j-1), (i, j-2) access
+  //writing dataset rho with (i, j+1), (i, j+2) access
+  //writing dataset rhou0 with (i, j+1), (i, j+2) access
+  //writing dataset rhou1 with (i, j+1), (i, j+2) access
+  //writing dataset rhoE with (i, j+1), (i, j+2) access
   #pragma omp for collapse (2)
   for (int j = nx1 + 1; j < nx1 + 2; j++) {
     for (int i = 0; i < nx0 + 4; i++) {
@@ -225,6 +250,11 @@ int main(int argc, char **argv) {
       rhoE[(j + 1) * (nx0 + 4) + (i + 0)] = rhoE[(j - 1) * (nx0 + 4) + (i + 0)];
       rhoE[(j + 2) * (nx0 + 4) + (i + 0)] = rhoE[(j - 2) * (nx0 + 4) + (i + 0)];
     }
+  }
+  set_dirty(rho);
+  set_dirty(rhou0);
+  set_dirty(rhou1);
+  set_dirty(rhoE);
   }
 
   // Record start time
@@ -244,15 +274,20 @@ int main(int argc, char **argv) {
   for (int iteration = 0; iteration < itercount; iteration++) {
 
     // Save equations
-    //writing dataset rho_old with (i, j) access
     //reading dataset rho with (i, j) access
-    //writing dataset rhou0_old with (i, j) access
     //reading dataset rhou0 with (i, j) access
-    //writing dataset rhou1_old with (i, j) access
     //reading dataset rhou1 with (i, j) access
-    //writing dataset rhoE_old with (i, j) access
     //reading dataset rhoE with (i, j) access
+    //writing dataset rho_old with (i, j) access
+    //writing dataset rhou0_old with (i, j) access
+    //writing dataset rhou1_old with (i, j) access
+    //writing dataset rhoE_old with (i, j) access
     auto start = std::chrono::high_resolution_clock::now();
+
+    exchange_halo(nx0, nx1, rho);
+    exchange_halo(nx0, nx1, rhou0);
+    exchange_halo(nx0, nx1, rhou1);
+    exchange_halo(nx0, nx1, rhoE);
     #pragma omp for collapse (2)
     for (int j = 0; j < nx1 + 4; j++) {
       for (int i = 0; i < nx0 + 4; i++) {
@@ -266,30 +301,30 @@ int main(int argc, char **argv) {
             rhoE[(j + 0) * (nx0 + 4) + (i + 0)];
       }
     }
-    
-    exchange_halo(nx0, nx1, rho);
-    exchange_halo(nx0, nx1, rhou0);
-    exchange_halo(nx0, nx1, rhou1);
-    exchange_halo(nx0, nx1, rhoE);
-    
-    
+    set_dirty(rho_old);
+    set_dirty(rhou0_old);
+    set_dirty(rhou1_old);
+    set_dirty(rhoE_old);
     loop1 += std::chrono::high_resolution_clock::now() - start;
 
     // Runge-Kutta time-stepper
     for (int stage = 0; stage < 3; stage++) {
 
       // Grouped Formula Evaluation
-      //writing dataset T with (i, j) access
       //reading dataset rhou0 with (i, j) acces
       //reading dataset rhou1 with (i, j) acces
       //reading dataset rho with (i, j) acces
       //reading dataset rhoE with (i, j) acces
+      //writing dataset T with (i, j) access
       //writing dataset p with (i, j) acces
       //writing dataset u1 with (i, j) acces
       //writing dataset u0 with (i, j) acces
       auto start = std::chrono::high_resolution_clock::now();
       
-      //No stencil accesses to matrices, no halo exchange necessary
+      exchange_halo(nx0, nx1, rho);
+      exchange_halo(nx0, nx1, rhou0);
+      exchange_halo(nx0, nx1, rhou1);
+      exchange_halo(nx0, nx1, rhoE);    
       #pragma omp for collapse (2)
       for (int j = 0; j < nx1 + 4; j++) {
         for (int i = 0; i < nx0 + 4; i++) {
@@ -316,24 +351,27 @@ int main(int argc, char **argv) {
       }
       
       //TODO: Need to set matrices to dirty
-      set_dirty(rho);
-      set_dirty(rhou0);
-      set_dirty(rhou1);
-      set_dirty(rhoE);
+      set_dirty(T);
+      set_dirty(p);
+      set_dirty(u1);
+      set_dirty(u0);
       
       loop2 += std::chrono::high_resolution_clock::now() - start;
       // Residual of equation
+      //reading dataset u0 with (i,j), (i, j-2), (i,j-1) , (i,j+1), (i,j+2) access
+      //reading dataset u1 with (i,j), (i, j-2), (i,j-1) , (i,j+1), (i,j+2) access
+      //reading dataset rhou with (i, j), (i-2, j), (i-1, j), (i+1, j), (i+2, j), (i, j-2), (i,j-1) , (i,j+1), (i,j+2) access
+      //reading dataset rhou1 with (i, j), (i-2, j), (i-1, j), (i+1, j), (i+2, j), (i, j-2), (i,j-1) , (i,j+1), (i,j+2) access
+      //reading dataset rhou0 with (i, j), (i-2, j), (i-1, j), (i+1, j), (i+2, j), (i, j-2), (i,j-1) , (i,j+1), (i,j+2) access
+      //reading dataset rhoE with (i,j), (i, j-2), (i,j-1) , (i,j+1), (i,j+2) access
       //writing dataset wk0 with (i,j) access
       //writing dataset wk1 with (i,j) access
       //writing dataset wk2 with (i,j) access
       //writing dataset wk3 with (i,j) access
-      //reading dataset rhoE with (i,j), (i, j-2), (i,j-1) , (i,j+1), (i,j+2) access
-      //reading dataset u1 with (i,j), (i, j-2), (i,j-1) , (i,j+1), (i,j+2) access
-      //reading dataset u0 with (i,j), (i, j-2), (i,j-1) , (i,j+1), (i,j+2) access
-      //reading dataset rhou1 with (i, j), (i-2, j), (i-1, j), (i+1, j), (i+2, j), (i, j-2), (i,j-1) , (i,j+1), (i,j+2) access
-      //reading dataset rhou0 with (i, j), (i-2, j), (i-1, j), (i+1, j), (i+2, j), (i, j-2), (i,j-1) , (i,j+1), (i,j+2) access
       start = std::chrono::high_resolution_clock::now();
       //TODO: need to make sure stencil accesses to matrices read correct data
+      exchange_halo(nx0, nx1, u0);
+      exchange_halo(nx0, nx1, u1);
       exchange_halo(nx0, nx1, rho);
       exchange_halo(nx0, nx1, rhou0);
       exchange_halo(nx0, nx1, rhou1);
@@ -610,23 +648,37 @@ int main(int argc, char **argv) {
                   u0[(j + 0) * (nx0 + 4) + (i + 0)] -
               0.5 * (temp_eval27 + temp_eval3) *
                   rhoE[(j + 0) * (nx0 + 4) + (i + 0)];
+
+           set_dirty(wk0);
+           set_dirty(wk1);
+           set_dirty(wk2);
+           set_dirty(wk3);
         }
       }
       loop3 += std::chrono::high_resolution_clock::now() - start;
       // RK new (subloop) update
-      //writing dataset rho with (i, j) access
-      //reading dataset wk0 with (i, j) access
       //reading dataset rho_old with (i, j) access
-      //writing dataset rhou0 with (i, j) access
-      //reading dataset wk1 with (i, j) access
       //reading dataset rhou0_old with (i, j) access
-      //writing dataset rhou1 with (i, j) access
-      //reading dataset wk2 with (i, j) access
       //reading dataset rhou1_old with (i, j) access
-      //writing dataset rhoE with (i, j) access
-      //reading dataset wk3 with (i, j) access
       //reading dataset rhoE_old with (i, j) access
+      //reading dataset wk0 with (i, j) access
+      //reading dataset wk1 with (i, j) access
+      //reading dataset wk2 with (i, j) access
+      //reading dataset wk3 with (i, j) access
+      //writing dataset rhou0 with (i, j) access
+      //writing dataset rhou1 with (i, j) access
+      //writing dataset rhoE with (i, j) access
+      //writing dataset rho with (i, j) access
       start = std::chrono::high_resolution_clock::now();
+
+      exchange_halo(nx0, nx1, rho_old);
+      exchange_halo(nx0, nx1, rhou0_old);
+      exchange_halo(nx0, nx1, rhou1_old);
+      exchange_halo(nx0, nx1, rhoE_old);
+      exchange_halo(nx0, nx1, wk0);
+      exchange_halo(nx0, nx1, wk1);
+      exchange_halo(nx0, nx1, wk2);
+      exchange_halo(nx0, nx1, wk3);
       #pragma omp for collapse (2)
       for (int j = 0; j < nx1 + 4; j++) {
         for (int i = 0; i < nx0 + 4; i++) {
@@ -653,22 +705,28 @@ int main(int argc, char **argv) {
       loop4 += std::chrono::high_resolution_clock::now() - start;
       
       // RK old update
-      //writing rho_old with (i, j) access
-      //reading wk0 with (i, j) access
       //reading rho_old with (i, j) access
-      //writing rhou0_old with (i, j) access
-      //reading wk1 with (i, j) access
-      //reading rho_old with (i, j) access
-      //writing rhou1_old with (i, j) access
-      //reading wk2 with (i, j) access
-      //reading rho_old with (i, j) access
-      //writing rhoE_old with (i, j) access
-      //reading wk3 with (i, j) access
+      //reading rhou0_old with (i, j) access
+      //reading rhou1_old with (i, j) access
       //reading rhoE_old with (i, j) access
+      //reading wk0 with (i, j) access
+      //reading wk1 with (i, j) access
+      //reading wk2 with (i, j) access
+      //reading wk3 with (i, j) access
+      //writing rho_old with (i, j) access
+      //writing rhou0_old with (i, j) access
+      //writing rhou1_old with (i, j) access
+      //writing rhoE_old with (i, j) access
       start = std::chrono::high_resolution_clock::now();
+      exchange_halo(nx0, nx1, rho_old);
+      exchange_halo(nx0, nx1, rhou0_old);
+      exchange_halo(nx0, nx1, rhou1_old);
+      exchange_halo(nx0, nx1, rhoE_old);
+      exchange_halo(nx0, nx1, wk0);
+      exchange_halo(nx0, nx1, wk1);
+      exchange_halo(nx0, nx1, wk2);
+      exchange_halo(nx0, nx1, wk3);
       
-      //No stencil accesses to matrices, no halo exchange necessary
-      //are Olds used anywhere else? dirty flag is required??
       #pragma omp for collapse (2)
       for (int j = 0; j < nx1 + 4; j++) {
         for (int i = 0; i < nx0 + 4; i++) {
@@ -686,18 +744,23 @@ int main(int argc, char **argv) {
               rhoE_old[(j + 0) * (nx0 + 4) + (i + 0)];
         }
       }
+      set_dirty(rho_old);
+      set_dirty(rhou0_old);
+      set_dirty(rhou1_old);
+      set_dirty(rhoE_old);
       loop5 += std::chrono::high_resolution_clock::now() - start;
       // Apply boundary conditions
 
+      if (prev_x == MPI_PROC_NULL){
       // Left
-      //writing dataset rho with (i-1, j), (i-2, j) access
       //reading dataset rho with (i+1, j), (i+2, j) access
-      //writing dataset rhou0 with (i-1, j), (i-2, j) access
       //reading dataset rhou0 with (i+1, j), (i+2, j) access
-      //writing dataset rhou1 with (i-1, j), (i-2, j) access
       //reading dataset rhou1 with (i+1, j), (i+2, j) access
-      //writing dataset rhoE with (i-1, j), (i-2, j) access
       //reading dataset rhoE with (i+1, j), (i+2, j) access
+      //writing dataset rho with (i-1, j), (i-2, j) access
+      //writing dataset rhou0 with (i-1, j), (i-2, j) access
+      //writing dataset rhou1 with (i-1, j), (i-2, j) access
+      //writing dataset rhoE with (i-1, j), (i-2, j) access
       start = std::chrono::high_resolution_clock::now();
       
       exchange_halo(nx0, nx1, rho);
@@ -726,7 +789,7 @@ int main(int argc, char **argv) {
               rhoE[(j + 0) * (nx0 + 4) + (i + 2)];
         }
       }
-      
+       
       
       //TODO: Need to set matrices to dirty
       set_dirty(rho);
@@ -734,16 +797,18 @@ int main(int argc, char **argv) {
       set_dirty(rhou1);
       set_dirty(rhoE);
       loop6 += std::chrono::high_resolution_clock::now() - start;
+      }
 
+      if (next_x == MPI_PROC_NULL){
       // Right
-      //writing dataset rho with (i+1, j), (i+2, j) access
       //reading dataset rho with (i-1, j), (i-2, j) access
-      //writing dataset rhou0 with (i+1, j), (i+2, j) access
       //reading dataset rhou0 with (i-1, j), (i-2, j) access
-      //writing dataset rhou1 with (i+1, j), (i+2, j) access
       //reading dataset rhou1 with (i-1, j), (i-2, j) access
-      //writing dataset rhoE with (i+1, j), (i+2, j) access
       //reading dataset rhoE with (i-1, j), (i-2, j) access
+      //writing dataset rhou0 with (i+1, j), (i+2, j) access
+      //writing dataset rhou1 with (i+1, j), (i+2, j) access
+      //writing dataset rhoE with (i+1, j), (i+2, j) access
+      //writing dataset rho with (i+1, j), (i+2, j) access
       start = std::chrono::high_resolution_clock::now();
       exchange_halo(nx0, nx1, rho);
       exchange_halo(nx0, nx1, rhou0);
@@ -777,15 +842,18 @@ int main(int argc, char **argv) {
       set_dirty(rhou1);
       set_dirty(rhoE);
       loop7 += std::chrono::high_resolution_clock::now() - start;
+      }
+      
+      if (prev_y == MPI_PROC_NULL){
       // Top
-      //writing dataset rho with (i, j-1), (i, j-2) access
       //reading dataset rho with (i, j+1), (i, j+2) access
-      //writing dataset rhou0 with (i, j-1), (i, j-2) access
       //reading dataset rhou0 with (i, j+1), (i, j+2) access
-      //writing dataset rhou1 with (i, j-1), (i, j-2) access
       //reading dataset rhou1 with (i, j+1), (i, j+2) access
-      //writing dataset rhoE with (i, j-1), (i, j-2) access
       //reading dataset rhoE with (i, j+1), (i, j+2) access
+      //writing dataset rho with (i, j-1), (i, j-2) access
+      //writing dataset rhou0 with (i, j-1), (i, j-2) access
+      //writing dataset rhou1 with (i, j-1), (i, j-2) access
+      //writing dataset rhoE with (i, j-1), (i, j-2) access
       start = std::chrono::high_resolution_clock::now();
       
       exchange_halo(nx0, nx1, rho);
@@ -821,15 +889,19 @@ int main(int argc, char **argv) {
       set_dirty(rhou1);
       set_dirty(rhoE);
       loop8 += std::chrono::high_resolution_clock::now() - start;
+      }
+
+
+      if (next_y == MPI_PROC_NULL){
       // Bottom
-      //writing dataset rho with (i, j+1), (i, j+2) access
       //reading dataset rho with (i, j-1), (i, j-2) access
-      //writing dataset rhou0 with (i, j+1), (i, j+2) access
       //reading dataset rhou0 with (i, j-1), (i, j-2) access
-      //writing dataset rhou1 with (i, j+1), (i, j+2) access
       //reading dataset rhou1 with (i, j-1), (i, j-2) access
-      //writing dataset rhoE with (i, j+1), (i, j+2) access
       //reading dataset rhoE with (i, j-1), (i, j-2) access
+      //writing dataset rho with (i, j+1), (i, j+2) access
+      //writing dataset rhou0 with (i, j+1), (i, j+2) access
+      //writing dataset rhou1 with (i, j+1), (i, j+2) access
+      //writing dataset rhoE with (i, j+1), (i, j+2) access
       start = std::chrono::high_resolution_clock::now();
       exchange_halo(nx0, nx1, rho);
       exchange_halo(nx0, nx1, rhou0);
@@ -863,6 +935,7 @@ int main(int argc, char **argv) {
       set_dirty(rhoE);
     }
     loop9 += std::chrono::high_resolution_clock::now() - start;
+    }
     // End of stage loop
 
     double sum = 0.0;
@@ -870,6 +943,8 @@ int main(int argc, char **argv) {
     //reading dataset rho with (i, j) access
     //reading dataset p with (i, j) access
     start = std::chrono::high_resolution_clock::now();
+    exchange_halo(nx0, nx1, rho);
+    exchange_halo(nx0, nx1, p);
     #pragma omp for collapse (2)
     for (int j = 0; j < nx1 + 4; j++) {
       for (int i = 0; i < nx0 + 4; i++) {
@@ -877,17 +952,23 @@ int main(int argc, char **argv) {
         sum2 += p[j * (nx0 + 4) + i] * p[j * (nx0 + 4) + i];
       }
     }
+    //MPI_Allreduce
+    MPI_Allreduce(&sum, &sum_reduce_buff, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(&sum2, &sum_reduce_buff2, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     loop10 += std::chrono::high_resolution_clock::now() - start;
-    std::cout << "Checksums: " << sqrt(sum) << " " << sqrt(sum2) << "\n";
+    if(my_rank==0)
+      std::cout << "Iteration: " << iteration <<
+        "\tchecksums: " << sqrt(sum_reduce_buff) << " " << sqrt(sum_reduce_buff2) << "\n";
 
   } // End of time loop
 
   // Record end time
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff = end - start;
-
+  
+  if(my_rank == 0){
   std::cout << "\nTimings are:\n";
-  std::cout << "-----------------------------------------\n";
+  std::cout << "----------------------------------------------------------\n";
   // TODO: per-loop statistics come here
   std::cout << "Loop 1 time     " << loop1.count() / itercount << " seconds\n";
   std::cout << "Loop 2 time     " << loop2.count() / itercount / 3 << " seconds\n";
@@ -900,7 +981,7 @@ int main(int argc, char **argv) {
   std::cout << "Loop 9 time     " << loop9.count() / itercount / 3 << " seconds\n";
   std::cout << "Loop 10 time     " << loop10.count() / itercount / 3 << " seconds\n";
   std::cout << "Total Wall time " << diff.count() << " seconds\n";
-
+  }
   delete[] rho;
   delete[] rhou0;
   delete[] rhou1;
