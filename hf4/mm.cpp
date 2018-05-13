@@ -6,6 +6,8 @@
 
 //#define VERBOSE true
 
+// Main professor Captain Author Count McMitnyik Levente
+// copied by botoscasba
 
 int main(int argc, char *argv[]){
 
@@ -26,7 +28,7 @@ int main(int argc, char *argv[]){
   MPI_Get_processor_name(hostname, &len);
   MPI_Status status;
 
-  int N = 4;
+  int N = 1024;
   int numGrid = sqrt(numtasks);
   int gridSize = N / numGrid;
 
@@ -248,12 +250,12 @@ int main(int argc, char *argv[]){
 
   MPI_Finalize();
   if(rank == 0){
-    for(int i=0; i<N; i++){
-      for(int j=0; j<N; j++){
-        printf("%2.0f  ", C_all[i*N + j]);
-      }
-      printf("\n");
-    }
+    // for(int i=0; i<N; i++){
+    //   for(int j=0; j<N; j++){
+    //     printf("%2.0f  ", C_all[i*N + j]);
+    //   }
+    //   printf("\n");
+    // }
     delete C_all;
   }
   delete A, B, C;
