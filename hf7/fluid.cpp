@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
   //writing dataset rhou0 with (i,j) access
   //writing dataset rhou1 with (i,j) access
   //writing dataset rhoE with (i,j) access
-#pragma acc data copy(rho[0:nx0+4][0:nx1+4], rhou0[0:nx0+4][0:nx1+4], rhou1[0:nx0+4][0:nx1+4], rhoE[0:nx0+4][0:nx1+4])
+#pragma acc data copy(rho[0:(nx0+4)*nx1+4], rhou0[0:(nx0+4)*nx1+4], rhou1[0:(nx0+4)*nx1+4], rhoE[0:(nx0+4)*nx1+4])
 {
   #pragma acc parallel loop collapse (2)
   for (int j = 0; j < nx1 + 4; j++) {
@@ -239,10 +239,10 @@ int main(int argc, char **argv) {
   std::chrono::duration<double> loop9 = std::chrono::high_resolution_clock::now() - start;
   std::chrono::duration<double> loop10 = std::chrono::high_resolution_clock::now() - start;
 
-#pragma acc data copy(rho[0:nx0+4][0:nx1+4], rhou0[0:nx0+4][0:nx1+4], rhou1[0:nx0+4][0:nx1+4], rhoE[0:nx0+4][0:nx1+4]) 
-#pragma acc data copy(rho_old[0:nx0+4][0:nx1+4], rhou0_old[0:nx0+4][0:nx1+4], rhou1_old[0:nx0+4][0:nx1+4], rhoE_old[0:nx0+4][0:nx1+4]) 
-#pragma acc data copy(T[0:nx0+4][0:nx1+4], u0[0:nx0+4][0:nx1+4], u1[0:nx0+4][0:nx1+4], p[0:nx0+4][0:nx1+4]) 
-#pragma acc data copy(wk0[0:nx0+4][0:nx1+4], wk1[0:nx0+4][0:nx1+4], wk2[0:nx0+4][0:nx1+4], wk3[0:nx0+4][0:nx1+4]) 
+#pragma acc data copy(rho[0:(nx0+4)*nx1+4], rhou0[0:(nx0+4)*nx1+4], rhou1[0:(nx0+4)*nx1+4], rhoE[0:(nx0+4)*nx1+4]) 
+#pragma acc data copy(rho_old[0:(nx0+4)*nx1+4], rhou0_old[0:(nx0+4)*nx1+4], rhou1_old[0:(nx0+4)*nx1+4], rhoE_old[0:(nx0+4)*nx1+4]) 
+#pragma acc data copy(T[0:(nx0+4)*nx1+4], u0[0:(nx0+4)*nx1+4], u1[0:(nx0+4)*nx1+4], p[0:(nx0+4)*nx1+4]) 
+#pragma acc data copy(wk0[0:(nx0+4)*nx1+4], wk1[0:(nx0+4)*nx1+4], wk2[0:(nx0+4)*nx1+4], wk3[0:(nx0+4)*nx1+4]) 
 {
   // Main time iteration loop
   for (int iteration = 0; iteration < itercount; iteration++) {
@@ -799,7 +799,7 @@ int main(int argc, char **argv) {
     //reading dataset rho with (i, j) access
     //reading dataset p with (i, j) access
     start = std::chrono::high_resolution_clock::now();
-    #pragma acc parallel loop collapse (2)
+    #pragma acc parallel loop reduction(+:sum) reduction(+:sum2)
     for (int j = 0; j < nx1 + 4; j++) {
       for (int i = 0; i < nx0 + 4; i++) {
         sum += rho[j * (nx0 + 4) + i] * rho[j * (nx0 + 4) + i];
